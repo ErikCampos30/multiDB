@@ -1,98 +1,106 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# API REST para Sistema de Gestión de Librerías
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este proyecto consiste en una aplicación web tipo Web Service REST desarrollada con el framework NestJS. El sistema implementa una arquitectura de persistencia políglota diseñada para la gestión de inventario, usuarios y transacciones de una librería.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+El objetivo del sistema es demostrar la integración eficiente de tres motores de base de datos distintos para resolver problemáticas específicas: integridad relacional, auditoría documental y optimización de lecturas mediante caché.
 
-## Description
+## Arquitectura y Tecnologías
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+El proyecto utiliza el siguiente stack tecnológico:
 
-## Project setup
+* **Entorno de Ejecución:** Node.js (TypeScript).
+* **Framework Backend:** NestJS.
+* **Base de Datos Relacional (PostgreSQL):** Utilizada para almacenar la información estructurada y relacional (Libros, Autores, Socios, Préstamos). Gestionada mediante TypeORM.
+* **Base de Datos Documental (MongoDB):** Utilizada para el almacenamiento de logs de auditoría (Bitácora de operaciones) y reseñas. Gestionada mediante Mongoose.
+* **Almacenamiento Clave-Valor (Redis):** Utilizada para el caché de consultas frecuentes (Patrón Cache-Aside) y gestión de sesiones.
+* **Contenedores:** Docker y Docker Compose para la orquestación de la infraestructura de datos.
 
-```bash
-$ npm install
-```
+## Prerrequisitos
 
-## Compile and run the project
+Para ejecutar este proyecto en un entorno local, asegúrese de tener instalado el siguiente software:
 
-```bash
-# development
-$ npm run start
+* **Node.js** (Versión 18 o superior).
+* **Docker Desktop** (o Docker Engine + Docker Compose).
+* **Git** (Sistema de control de versiones).
+* **Cliente HTTP** (Postman, Insomnia o similar) para pruebas de los endpoints.
 
-# watch mode
-$ npm run start:dev
+## Instalación y Configuración
 
-# production mode
-$ npm run start:prod
-```
+Siga los pasos descritos a continuación para inicializar el proyecto en su entorno local:
 
-## Run tests
+1.  **Clonar el repositorio**
+    Descargue el código fuente desde el repositorio remoto:
+    ```bash
+    git clone <URL_DEL_REPOSITORIO>
+    cd backend-api
+    ```
 
-```bash
-# unit tests
-$ npm run test
+2.  **Instalar dependencias**
+    Ejecute el gestor de paquetes para descargar las librerías necesarias:
+    ```bash
+    npm install
+    ```
 
-# e2e tests
-$ npm run test:e2e
+3.  **Configurar Variables de Entorno**
+    Cree un archivo llamado `.env` en la raíz del directorio del proyecto. Copie la siguiente configuración (alineada con el archivo `docker-compose.yml` incluido):
+    ```env
+    # Configuración de la Aplicación
+    PORT=3000
 
-# test coverage
-$ npm run test:cov
-```
+    # Base de Datos Relacional (PostgreSQL)
+    # Nota: Puerto externo 5434 para evitar conflictos.
+    DB_HOST=localhost
+    DB_PORT=5434
+    DB_USER=admin
+    DB_PASSWORD=adminpassword
+    DB_NAME=libreria_db
 
-## Deployment
+    # Base de Datos Documental (MongoDB)
+    MONGO_URI=mongodb://localhost:27017/libreria_logs
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+    # Caché (Redis)
+    REDIS_HOST=localhost
+    REDIS_PORT=6379
+    REDIS_TTL=60
+    ```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+4.  **Despliegue de Infraestructura**
+    Utilice Docker Compose para levantar los servicios de base de datos (PostgreSQL, MongoDB y Redis):
+    ```bash
+    docker-compose up -d
+    ```
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+5.  **Ejecución de la Aplicación**
+    Inicie el servidor en modo desarrollo:
+    ```bash
+    npm run start:dev
+    ```
+    La API estará disponible en: `http://localhost:3000/api`
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Documentación de Recursos (Endpoints)
 
-## Resources
+La API expone operaciones CRUD estándar. A continuación se detallan las operaciones disponibles para el recurso principal.
 
-Check out a few resources that may come in handy when working with NestJS:
+### Recurso: Libros (`/api/libros`)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+* **GET** `/api/libros`: Recupera el listado de libros.
+    * *Lógica:* Consulta prioritaria en Redis. Si no existe caché, consulta PostgreSQL y almacena el resultado.
+* **POST** `/api/libros`: Registra un nuevo libro.
+    * *Side-effect:* Registra la operación en MongoDB (Auditoría) e invalida la caché de Redis.
+* **GET** `/api/libros/:id`: Recupera el detalle de un libro específico por su UUID.
+* **PATCH** `/api/libros/:id`: Actualiza parcialmente los datos de un libro.
+    * *Side-effect:* Invalida la caché de Redis y registra los cambios en MongoDB.
+* **DELETE** `/api/libros/:id`: Realiza un borrado lógico del recurso.
+    * *Lógica:* Establece el campo `is_active` a `false`. El registro permanece en la base de datos pero se omite en consultas.
 
-## Support
+## Estructura del Proyecto
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+El código fuente se encuentra bajo el directorio `src/` y sigue una estructura modular:
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+* `app.module.ts`: Módulo raíz y configuración de conexiones.
+* `libros/`: Módulo del recurso Libros.
+    * `dto/`: Objetos de Transferencia de Datos.
+    * `entities/`: Modelos ORM (SQL).
+    * `schemas/`: Modelos ODM (NoSQL).
+    * `libros.service.ts`: Lógica de negocio.
+    * `libros.controller.ts`: Controladores REST.
