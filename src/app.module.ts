@@ -5,6 +5,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { LibrosModule } from '../libros/libros.module';
+import { AutoresModule } from './autores/autores.module';
+import { CategoriasModule } from './categorias/categorias.module';
+import { EditorialesModule } from './editoriales/editoriales.module';
+import { SociosModule } from './socios/socios.module';
+import { PrestamosModule } from './prestamos/prestamos.module';
 
 @Module({
   imports: [
@@ -46,6 +51,16 @@ import { LibrosModule } from '../libros/libros.module';
     }),
 
     LibrosModule,
+
+    AutoresModule,
+
+    CategoriasModule,
+
+    EditorialesModule,
+
+    SociosModule,
+
+    PrestamosModule,
   ],
   controllers: [],
   providers: [],

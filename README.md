@@ -1,6 +1,6 @@
 # API REST para Sistema de Gestión de Librerías
 
-Este proyecto consiste en una aplicación web tipo Web Service REST desarrollada con el framework NestJS. El sistema implementa una arquitectura de persistencia políglota diseñada para la gestión de inventario, usuarios y transacciones de una librería.
+Este proyecto consiste en una aplicación web tipo Web Service REST desarrollada con el framework NestJS. El sistema implementa una arquitectura de persistencia políglota diseñada para la gestión integral de inventario, usuarios y transacciones de una librería.
 
 El objetivo del sistema es demostrar la integración eficiente de tres motores de base de datos distintos para resolver problemáticas específicas: integridad relacional, auditoría documental y optimización de lecturas mediante caché.
 
@@ -10,62 +10,58 @@ El proyecto utiliza el siguiente stack tecnológico:
 
 * **Entorno de Ejecución:** Node.js (TypeScript).
 * **Framework Backend:** NestJS.
-* **Base de Datos Relacional (PostgreSQL):** Utilizada para almacenar la información estructurada y relacional (Libros, Autores, Socios, Préstamos). Gestionada mediante TypeORM.
-* **Base de Datos Documental (MongoDB):** Utilizada para el almacenamiento de logs de auditoría (Bitácora de operaciones) y reseñas. Gestionada mediante Mongoose.
-* **Almacenamiento Clave-Valor (Redis):** Utilizada para el caché de consultas frecuentes (Patrón Cache-Aside) y gestión de sesiones.
-* **Contenedores:** Docker y Docker Compose para la orquestación de la infraestructura de datos.
+* **Base de Datos Relacional (PostgreSQL):** Almacenamiento de información transaccional y relacional (Libros, Autores, Socios, Categorías, Editoriales). Gestionada mediante TypeORM.
+* **Base de Datos Documental (MongoDB):** Almacenamiento de logs de auditoría (Bitácora de operaciones) y datos no estructurados. Gestionada mediante Mongoose.
+* **Almacenamiento Clave-Valor (Redis):** Caché de consultas frecuentes (Patrón Cache-Aside) para optimización de tiempos de respuesta.
+* **Contenedores:** Docker y Docker Compose para la orquestación de la infraestructura.
 
 ## Prerrequisitos
 
-Para ejecutar este proyecto en un entorno local, asegúrese de tener instalado el siguiente software:
+Para ejecutar este proyecto, asegúrese de disponer de:
 
 * **Node.js** (Versión 18 o superior).
 * **Docker Desktop** (o Docker Engine + Docker Compose).
-* **Git** (Sistema de control de versiones).
-* **Cliente HTTP** (Postman, Insomnia o similar) para pruebas de los endpoints.
+* **Git** (Control de versiones).
+* **Cliente HTTP** (Postman, Insomnia) para pruebas de integración.
 
 ## Instalación y Configuración
 
 Siga los pasos descritos a continuación para inicializar el proyecto en su entorno local:
 
 1.  **Clonar el repositorio**
-    Descargue el código fuente desde el repositorio remoto:
     ```bash
     git clone <URL_DEL_REPOSITORIO>
     cd backend-api
     ```
 
 2.  **Instalar dependencias**
-    Ejecute el gestor de paquetes para descargar las librerías necesarias:
     ```bash
     npm install
     ```
 
 3.  **Configurar Variables de Entorno**
-    Cree un archivo llamado `.env` en la raíz del directorio del proyecto. Copie la siguiente configuración (alineada con el archivo `docker-compose.yml` incluido):
+    Cree un archivo `.env` en la raíz del proyecto con la siguiente configuración:
     ```env
-    # Configuración de la Aplicación
     PORT=3000
 
-    # Base de Datos Relacional (PostgreSQL)
-    # Nota: Puerto externo 5434 para evitar conflictos.
+    # PostgreSQL (Puerto externo 5434 para evitar conflictos locales)
     DB_HOST=localhost
     DB_PORT=5434
     DB_USER=admin
     DB_PASSWORD=adminpassword
     DB_NAME=libreria_db
 
-    # Base de Datos Documental (MongoDB)
+    # MongoDB
     MONGO_URI=mongodb://localhost:27017/libreria_logs
 
-    # Caché (Redis)
+    # Redis
     REDIS_HOST=localhost
     REDIS_PORT=6379
     REDIS_TTL=60
     ```
 
 4.  **Despliegue de Infraestructura**
-    Utilice Docker Compose para levantar los servicios de base de datos (PostgreSQL, MongoDB y Redis):
+    Levante los servicios de base de datos mediante Docker:
     ```bash
     docker-compose up -d
     ```
@@ -79,28 +75,39 @@ Siga los pasos descritos a continuación para inicializar el proyecto en su ento
 
 ## Documentación de Recursos (Endpoints)
 
-La API expone operaciones CRUD estándar. A continuación se detallan las operaciones disponibles para el recurso principal.
+La API expone operaciones CRUD estándar (GET, POST, PATCH, DELETE) para los siguientes recursos. Todos los métodos de escritura (POST, PATCH, DELETE) generan automáticamente un registro de auditoría en MongoDB e invalidan la caché de Redis correspondiente.
 
-### Recurso: Libros (`/api/libros`)
+### 1. Gestión de Inventario (`/api/libros`)
+Gestión del catálogo principal.
+* **GET** `/`: Listado optimizado con caché Redis.
+* **POST** `/`: Creación de libro con validación de ISBN y stock.
+* **DELETE** `/:id`: Borrado lógico (`is_active: false`).
 
-* **GET** `/api/libros`: Recupera el listado de libros.
-    * *Lógica:* Consulta prioritaria en Redis. Si no existe caché, consulta PostgreSQL y almacena el resultado.
-* **POST** `/api/libros`: Registra un nuevo libro.
-    * *Side-effect:* Registra la operación en MongoDB (Auditoría) e invalida la caché de Redis.
-* **GET** `/api/libros/:id`: Recupera el detalle de un libro específico por su UUID.
-* **PATCH** `/api/libros/:id`: Actualiza parcialmente los datos de un libro.
-    * *Side-effect:* Invalida la caché de Redis y registra los cambios en MongoDB.
-* **DELETE** `/api/libros/:id`: Realiza un borrado lógico del recurso.
-    * *Lógica:* Establece el campo `is_active` a `false`. El registro permanece en la base de datos pero se omite en consultas.
+### 2. Gestión de Usuarios (`/api/socios`)
+Administración de los miembros de la librería.
+* **POST** `/`: Registro de socios.
+    * *Validación:* El correo electrónico debe ser único.
+    * *Automatización:* El sistema genera automáticamente un número de socio único.
+* **DELETE** `/:id`: Borrado lógico.
+
+### 3. Catálogos y Metadatos
+Recursos de apoyo para la clasificación y atribución de libros.
+
+* **Autores** (`/api/autores`):
+    * Gestión de datos biográficos y nacionalidad de los autores.
+* **Categorías** (`/api/categorias`):
+    * Clasificación temática (ej. Novela, Ciencia Ficción). Campo `nombre` único.
+* **Editoriales** (`/api/editoriales`):
+    * Gestión de casas editoriales, incluyendo sitio web y país de origen.
 
 ## Estructura del Proyecto
 
-El código fuente se encuentra bajo el directorio `src/` y sigue una estructura modular:
+El código fuente sigue una estructura modular bajo el directorio `src/`:
 
-* `app.module.ts`: Módulo raíz y configuración de conexiones.
-* `libros/`: Módulo del recurso Libros.
-    * `dto/`: Objetos de Transferencia de Datos.
-    * `entities/`: Modelos ORM (SQL).
-    * `schemas/`: Modelos ODM (NoSQL).
-    * `libros.service.ts`: Lógica de negocio.
-    * `libros.controller.ts`: Controladores REST.
+* `app.module.ts`: Orquestador principal y configuración de DBs.
+* `libros/`: Módulo principal de inventario.
+* `socios/`: Módulo de gestión de usuarios y generación de credenciales.
+* `autores/`: Módulo de gestión de autores.
+* `categorias/`: Módulo de taxonomía de libros.
+* `editoriales/`: Módulo de gestión de proveedores/editoriales.
+    * Cada módulo contiene sus respectivos `dto/`, `entities/` (SQL), `schemas/` (NoSQL), `services` y `controllers`.
